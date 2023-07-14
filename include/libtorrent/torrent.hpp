@@ -1053,6 +1053,8 @@ namespace libtorrent {
 
 		bool is_inactive() const;
 
+		// void check_download_reporting();
+
 		std::string save_path() const;
 		aux::alert_manager& alerts() const;
 		piece_picker& picker()
@@ -1782,6 +1784,9 @@ namespace libtorrent {
 		// queuing mechanism's point of view. If a torrent doesn't transfer
 		// at high enough rates, it's inactive.
 		bool m_inactive:1;
+
+		// this is true if download report is disabled for this torrent
+		bool m_downloadReportDisabled = true;
 
 // ----
 

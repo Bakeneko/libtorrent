@@ -374,6 +374,8 @@ bool is_downloading_state(int const st)
 			if (!p.name.empty()) m_name.reset(new std::string(p.name));
 		}
 
+		// check_download_reporting();
+
 		TORRENT_ASSERT(is_single_thread());
 		m_file_priority.assign(p.file_priorities.begin(), p.file_priorities.end());
 
@@ -3048,6 +3050,13 @@ namespace {
 			}
 		}
 		if (req.downloaded < 0) req.downloaded = 0;
+
+		if (m_downloadReportDisabled) {
+			req.downloaded = 0;
+			req.corrupt = 0;
+			req.redundant = 0;
+			if (req.left != 0) req.left = 16*1024;
+		}
 
 		req.event = e;
 
@@ -5859,6 +5868,8 @@ namespace {
 			m_trackers.emplace_back(t);
 		}
 
+		// check_download_reporting();
+
 		// make sure the trackers are correctly ordered by tier
 		std::sort(m_trackers.begin(), m_trackers.end()
 			, [](aux::announce_entry const& lhs, aux::announce_entry const& rhs)
@@ -5915,6 +5926,7 @@ namespace {
 		auto k = std::upper_bound(m_trackers.begin(), m_trackers.end(), url.tier
 			, [] (int tier, aux::announce_entry const& v) { return tier < v.tier; });
 		if (k - m_trackers.begin() < m_last_working_tracker) ++m_last_working_tracker;
+		// check_download_reporting();
 		k = m_trackers.insert(k, aux::announce_entry(url.url));
 		if (url.source == 0) k->source = announce_entry::source_client;
 		else k->source = url.source;
@@ -8655,6 +8667,22 @@ namespace {
 			return false;
 		return m_inactive;
 	}
+
+	/*void torrent::check_download_reporting()
+	{
+		if (!find_tracker("donotreport")
+			&& m_torrent_file->name().find("donotreport") == std::string::npos)
+		{
+			if (m_downloadReportDisabled)
+			{
+				m_stat.add_stat(m_stat.total_payload_download(), 0);
+			}
+			m_downloadReportDisabled = false;
+		} else {
+			m_stat.add_stat(m_stat.total_payload_download(), 0);
+			m_downloadReportDisabled = true;
+		}
+	}*/
 
 	std::string torrent::save_path() const
 	{
